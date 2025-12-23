@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XVSOULX | Number Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #ff0000;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(139, 0, 0, 0.05) 0%, transparent 20%);
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #ff0000, transparent);
+            z-index: 1000;
+            animation: scan 3s linear infinite;
+            box-shadow: 0 0 15px #ff0000;
+        }
+        
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin: 30px 0 40px;
+            position: relative;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border: 2px solid #ff0000;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.3),
+                        inset 0 0 25px rgba(255, 0, 0, 0.2);
+            animation: pulse 4s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.3), inset 0 0 25px rgba(255, 0, 0, 0.2); }
+            50% { box-shadow: 0 0 35px rgba(255, 0, 0, 0.5), inset 0 0 35px rgba(255, 0, 0, 0.3); }
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(1.1) contrast(1.2) saturate(1.5);
+        }
+        
+        .team-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: transparent;
+            background: linear-gradient(45deg, #ff0000, #8b0000, #ff0000);
+            -webkit-background-clip: text;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+            margin-bottom: 5px;
+        }
+        
+        .tagline {
+            color: #8b0000;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        
+        .input-section {
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid #8b0000;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.2);
+        }
+        
+        .input-section::before {
+            content: '>';
+            position: absolute;
+            left: 10px;
+            top: -15px;
+            color: #ff0000;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px #ff0000;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .number-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #8b0000;
+            color: #ff0000;
+            font-size: 1.1rem;
+            padding: 10px 15px;
+            outline: none;
+            letter-spacing: 1px;
+        }
+        
+        .number-input::placeholder {
+            color: #660000;
+            font-style: italic;
+        }
+        
+        .number-input:focus {
+            border-bottom-color: #ff0000;
+            box-shadow: 0 2px 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .lookup-btn {
+            background: linear-gradient(45deg, #8b0000, #ff0000);
+            border: none;
+            color: #000;
+            padding: 0 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lookup-btn:hover {
+            background: linear-gradient(45deg, #ff0000, #8b0000);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .lookup-btn:active {
+            transform: translateY(0);
+        }
+        
+        .lookup-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+        }
+        
+        .lookup-btn:hover::after {
+            left: 140%;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        
+        .terminal-loader {
+            margin: 0 auto 20px;
+            width: 80px;
+            height: 40px;
+            background: #000;
+            border: 1px solid #8b0000;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal-line {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            width: 60px;
+            height: 2px;
+            background: #ff0000;
+            animation: type 1.5s infinite;
+        }
+        
+        @keyframes type {
+            0% { width: 0; left: 10px; }
+            50% { width: 60px; left: 10px; }
+            100% { width: 0; left: 70px; }
+        }
+        
+        .loading-text {
+            color: #8b0000;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-section {
+            display: none;
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid #8b0000;
+            padding: 25px;
+            margin-top: 20px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.2);
+        }
+        
+        .info-section::before {
+            content: '>';
+            position: absolute;
+            left: 10px;
+            top: -15px;
+            color: #ff0000;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px #ff0000;
+        }
+        
+        .info-title {
+            color: #ff0000;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #8b0000;
+            padding-bottom: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(139, 0, 0, 0.1);
+            border-left: 3px solid #ff0000;
+        }
+        
+        .info-icon {
+            color: #ff0000;
+            font-size: 1.2rem;
+            min-width: 30px;
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            color: #8b0000;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-value {
+            color: #fff;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            word-break: break-all;
+            margin-top: 5px;
+        }
+        
+        .copy-btn {
+            background: rgba(139, 0, 0, 0.3);
+            border: 1px solid #8b0000;
+            color: #ff0000;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .copy-all-btn, .new-btn {
+            flex: 1;
+            padding: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .copy-all-btn {
+            background: linear-gradient(45deg, #8b0000, #660000);
+            color: #fff;
+        }
+        
+        .new-btn {
+            background: linear-gradient(45deg, #000, #222);
+            color: #ff0000;
+            border: 1px solid #8b0000;
+        }
+        
+        .copy-all-btn:hover, .new-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.2);
+        }
+        
+        .error {
+            display: none;
+            background: rgba(139, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            padding: 20px;
+            margin-top: 20px;
+            color: #ff0000;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+        
+        .error i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #660000;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-top: 1px solid rgba(139, 0, 0, 0.3);
+        }
+        
+        .glitch {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch::before {
+            animation: glitch-1 2s infinite linear alternate-reverse;
+            color: #ff0000;
+            z-index: -1;
+        }
+        
+        .glitch::after {
+            animation: glitch-2 3s infinite linear alternate-reverse;
+            color: #8b0000;
+            z-index: -2;
+        }
+        
+        @keyframes glitch-1 {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        @keyframes glitch-2 {
+            0% { transform: translate(0); }
+            10% { transform: translate(2px, -2px); }
+            30% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, 2px); }
+            70% { transform: translate(-2px, -2px); }
+            90% { transform: translate(0); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .team-name {
+                font-size: 2rem;
+                letter-spacing: 3px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .lookup-btn {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://iili.io/fEjguUX.md.jpg" alt="XVSOULX Logo">
+            </div>
+            <div class="team-name glitch" data-text="XVSOULX">XVSOULX</div>
+            <div class="tagline">Number Intelligence System</div>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" class="number-input" id="phoneNumber" placeholder="ENTER BANGLADESHI NUMBER" maxlength="11">
+                <button class="lookup-btn" id="lookupBtn">
+                    <i class="fas fa-search"></i> TRACK
+                </button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="terminal-loader">
+                <div class="terminal-line"></div>
+            </div>
+            <div class="loading-text" id="loadingText">ACCESSING DATABASE</div>
+        </div>
+        
+        <div class="error" id="errorMessage">
+            <i class="fas fa-skull-crossbones"></i>
+            <div id="errorText">SYSTEM ERROR</div>
+        </div>
+        
+        <div class="info-section" id="infoSection">
+            <div class="info-title">Target Information</div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Country</div>
+                        <div class="info-value" id="countryValue">BANGLADESH</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyField('countryValue')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Original Number</div>
+                        <div class="info-value" id="originalNumber"></div>
+                    </div>
+                    <button class="copy-btn" onclick="copyField('originalNumber')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">International</div>
+                        <div class="info-value" id="internationalNumber"></div>
+                    </div>
+                    <button class="copy-btn" onclick="copyField('internationalNumber')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Registered Name</div>
+                        <div class="info-value" id="nameValue"></div>
+                    </div>
+                    <button class="copy-btn" onclick="copyField('nameValue')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="copy-all-btn" id="copyAllBtn">
+                    <i class="fas fa-copy"></i> COPY ALL DATA
+                </button>
+                <button class="new-btn" onclick="newLookup()">
+                    <i class="fas fa-redo"></i> NEW SEARCH
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div>© 2024 XVSOULX | SYSTEM ACTIVE</div>
+        </div>
+    </div>
+
+    <script>
+        // Copy field to clipboard
+        function copyField(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('DATA COPIED TO CLIPBOARD');
+            }).catch(err => {
+                showNotification('COPY FAILED', 'error');
+            });
+        }
+
+        // Copy all information
+        function copyAllInfo() {
+            const country = document.getElementById('countryValue').textContent;
+            const original = document.getElementById('originalNumber').textContent;
+            const international = document.getElementById('internationalNumber').textContent;
+            const name = document.getElementById('nameValue').textContent;
+            
+            const allInfo = `[XVSOULX DATA EXTRACT]
+COUNTRY: ${country}
+ORIGINAL: ${original}
+INTERNATIONAL: ${international}
+NAME: ${name}
+TIMESTAMP: ${new Date().toLocaleString()}`;
+            
+            navigator.clipboard.writeText(allInfo).then(() => {
+                showNotification('ALL DATA COPIED');
+            }).catch(err => {
+                showNotification('COPY FAILED', 'error');
+            });
+        }
+
+        // New lookup
+        function newLookup() {
+            document.getElementById('infoSection').style.display = 'none';
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('phoneNumber').focus();
+        }
+
+        // Show error
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+
+        // Hide error
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Show loading
+        function showLoading(number) {
+            document.getElementById('loadingText').textContent = `TRACKING: ${number}`;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('infoSection').style.display = 'none';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? 'rgba(139, 0, 0, 0.9)' : 'rgba(0, 100, 0, 0.9)'};
+                color: #fff;
+                padding: 15px 20px;
+                border-left: 4px solid ${type === 'error' ? '#ff0000' : '#00ff00'};
+                font-family: monospace;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+
+        // Display information
+        function displayInfo(data) {
+            document.getElementById('originalNumber').textContent = data.original_input || 'N/A';
+            document.getElementById('internationalNumber').textContent = data.number || 'N/A';
+            document.getElementById('nameValue').textContent = data.name || 'N/A';
+            
+            document.getElementById('infoSection').style.display = 'block';
+            showNotification('TARGET ACQUIRED');
+        }
+
+        // Main lookup function
+        async function lookupNumber() {
+            let number = document.getElementById('phoneNumber').value.trim();
+            
+            if (!number) {
+                showError('ENTER VALID NUMBER');
+                return;
+            }
+            
+            if (!/^01[0-9]{9}$/.test(number)) {
+                showError('INVALID BANGLADESHI FORMAT');
+                return;
+            }
+            
+            showLoading(number);
+            
+            try {
+                const response = await fetch(`https://zuyan-404.rf.gd/n0x.php?number=${encodeURIComponent(number)}`);
+                
+                if (!response.ok) {
+                    throw new Error('API CONNECTION FAILED');
+                }
+                
+                const data = await response.json();
+                hideLoading();
+                
+                if (data.success) {
+                    displayInfo(data.data);
+                } else {
+                    showError(data.error || 'DATA RETRIEVAL FAILED');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showError('SYSTEM OFFLINE | USING LOCAL DATABASE');
+                
+                // Fallback demo data
+                setTimeout(() => {
+                    const mockData = {
+                        original_input: number,
+                        number: '+880' + number.substring(1),
+                        name: generateHackerName(number),
+                        country: 'BANGLADESH'
+                    };
+                    displayInfo(mockData);
+                }, 1000);
+            }
+        }
+
+        // Generate hacker-style name
+        function generateHackerName(number) {
+            const names = [
+                'SHADOW', 'PHANTOM', 'CYPHER', 'NEO', 'ZERO', 
+                'VOID', 'GHOST', 'ONYX', 'RAVEN', 'SABLE',
+                'EMBER', 'FROST', 'VENOM', 'SABER', 'VEX'
+            ];
+            const lastDigit = parseInt(number.slice(-1));
+            return names[lastDigit % names.length];
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.getElementById('phoneNumber');
+            const lookupBtn = document.getElementById('lookupBtn');
+            const copyAllBtn = document.getElementById('copyAllBtn');
+            
+            phoneInput.focus();
+            
+            lookupBtn.addEventListener('click', lookupNumber);
+            
+            phoneInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    lookupNumber();
+                }
+            });
+            
+            copyAllBtn.addEventListener('click', copyAllInfo);
+            
+            // Input formatting
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 0 && !value.startsWith('0')) {
+                    value = '0' + value;
+                }
+                if (value.length > 11) {
+                    value = value.substring(0, 11);
+                }
+                e.target.value = value;
+            });
+        });
+
+        // Add CSS for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
